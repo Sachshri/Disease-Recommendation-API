@@ -2,8 +2,13 @@ from flask import Flask, request, jsonify
 import pickle
 import pandas as pd
 import numpy as np
+from flask_cors import CORS
+
 # Initialize the Flask app
 app = Flask(__name__)
+
+# Set CORS to allow requests from specific origins (e.g., localhost)
+CORS(app,origins="*")
 
 # Load the model
 with open('model2.pkl', 'rb') as f:
@@ -15,18 +20,24 @@ def predict():
     try:
         # Get the data from the request
         data = request.json
-        # Assuming the input data is passed as a list of features
+
+        # Convert data to a pandas DataFrame
         input_df = pd.DataFrame(data)
 
         # Use the model to make a prediction
         prediction = model.predict(input_df)
-        d_v_d=pd.read_csv('Doctor_Versus_Disease.csv')
-        l=[]
+
+        # Map the predictions to doctor types from the CSV
+        d_v_d = pd.read_csv('Doctor_Versus_Disease.csv')
+        l = []
         for p in prediction:
-            l.append(d_v_d[d_v_d['Disease']==p]['Doctor Type'].values.tolist())
-        doc_predict=np.array(l).flatten().tolist()
+            doctor_type = d_v_d[d_v_d['Disease'] == p]['Doctor Type'].values.tolist()
+            l.append(doctor_type)
+        
+        doc_predict = np.array(l).flatten().tolist()
+
         # Return the prediction as a JSON response
-        return jsonify({'Disease': prediction.tolist(),'Doctor Type':doc_predict})
+        return jsonify({'disease': prediction.tolist(), 'doctor_type': doc_predict})
     
     except Exception as e:
         return jsonify({'error': str(e)})
