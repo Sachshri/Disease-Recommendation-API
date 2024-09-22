@@ -29,15 +29,24 @@ def predict():
 
         # Map the predictions to doctor types from the CSV
         d_v_d = pd.read_csv('Doctor_Versus_Disease.csv')
+        dis_desc=pd.read_csv('Disease_Description.csv')
         l = []
+        desc=[]
         for p in prediction:
             doctor_type = d_v_d[d_v_d['Disease'] == p]['Doctor Type'].values.tolist()
+            des=dis_desc[dis_desc['Disease']==p]['Description'].values.tolist()
             l.append(doctor_type)
+            desc.append(des)
         
         doc_predict = np.array(l).flatten().tolist()
+        d_desc=[]
+        for d in desc:
+            d_desc.append(d[0])
 
+        # Get the disease Description
+        
         # Return the prediction as a JSON response
-        return jsonify({'disease': prediction.tolist(), 'doctor_type': doc_predict})
+        return jsonify({'disease': prediction.tolist(), 'doctor_type': doc_predict,'disease_description':d_desc})
     
     except Exception as e:
         return jsonify({'error': str(e)})
